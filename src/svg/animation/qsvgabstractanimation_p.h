@@ -31,7 +31,7 @@ public:
     };
 
     QSvgAbstractAnimation();
-    ~QSvgAbstractAnimation();
+    virtual ~QSvgAbstractAnimation();
 
     virtual AnimationType animationType() const = 0;
     void evaluateAnimation(qreal elapsedTime);

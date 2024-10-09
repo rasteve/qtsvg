@@ -14,24 +14,34 @@ QSvgAnimator::QSvgAnimator()
 
 QSvgAnimator::~QSvgAnimator()
 {
+    for (auto itr = m_animationsCSS.begin(); itr != m_animationsCSS.end(); itr++) {
+        QList<QSvgAbstractAnimation *> &nodeAnimations = itr.value();
+        for (QSvgAbstractAnimation *anim : nodeAnimations)
+            delete anim;
+    }
 }
 
 void QSvgAnimator::appendAnimation(const QSvgNode *node, QSvgAbstractAnimation *anim)
 {
-    QList<QSvgAbstractAnimation *> &nodeAnimations = m_animations[node];
-    nodeAnimations.append(anim);
+    if (!node)
+        return;
+
+    if (anim->animationType() == QSvgAbstractAnimation::SMIL)
+        m_animationsSMIL[node].append(anim);
+    else
+        m_animationsCSS[node].append(anim);
 }
 
 QList<QSvgAbstractAnimation *> QSvgAnimator::animationsForNode(const QSvgNode *node) const
 {
-    return m_animations.value(node);
+    return combinedAnimationsForNode(node);
 }
 
 void QSvgAnimator::advanceAnimations()
 {
     qreal elapsedTime = currentElapsed();
 
-    for (auto itr = m_animations.begin(); itr != m_animations.end(); ++itr) {
+    for (auto itr = m_animationsCSS.begin(); itr != m_animationsCSS.end(); itr++) {
         QList<QSvgAbstractAnimation *> &nodeAnimations = itr.value();
         for (QSvgAbstractAnimation *anim : nodeAnimations) {
             if (!anim->finished())
@@ -39,6 +49,13 @@ void QSvgAnimator::advanceAnimations()
         }
     }
 
+    for (auto itr = m_animationsSMIL.begin(); itr != m_animationsSMIL.end(); itr++) {
+        QList<QSvgAbstractAnimation *> &nodeAnimations = itr.value();
+        for (QSvgAbstractAnimation *anim : nodeAnimations) {
+            if (!anim->finished())
+                anim->evaluateAnimation(elapsedTime);
+        }
+    }
 }
 
 void QSvgAnimator::restartAnimation()
@@ -68,14 +85,17 @@ void QSvgAnimator::fastForwardAnimation(qint64 time)
 
 void QSvgAnimator::applyAnimationsOnNode(const QSvgNode *node, QPainter *p)
 {
-    if (!node || !m_animations.contains(node))
+    QList<QSvgAbstractAnimation *> nodeAnims = combinedAnimationsForNode(node);
+
+    if (!node || nodeAnims.size() == 0)
         return;
 
     QTransform worldTransform = p->worldTransform();
 
-    QList<QSvgAbstractAnimation *> anims = m_animations.value(node);
+    for (auto anim : nodeAnims) {
+        if (anim->finished())
+            continue;
 
-    for (auto anim : anims) {
         QList<QSvgAbstractAnimatedProperty *> props = anim->properties();
         for (auto prop : props) {
             switch (prop->type()) {
@@ -98,6 +118,14 @@ void QSvgAnimator::applyAnimationsOnNode(const QSvgNode *node, QPainter *p)
             }
         }
     }
+}
+
+QList<QSvgAbstractAnimation *> QSvgAnimator::combinedAnimationsForNode(const QSvgNode *node) const
+{
+    if (!node)
+        return QList<QSvgAbstractAnimation *>();
+
+    return m_animationsSMIL.value(node) + m_animationsCSS.value(node);
 }
 
 QT_END_NAMESPACE

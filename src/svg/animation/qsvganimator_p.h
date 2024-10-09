@@ -40,7 +40,11 @@ public:
     void applyAnimationsOnNode(const QSvgNode *node, QPainter *p);
 
 private:
-    QHash<const QSvgNode *, QList<QSvgAbstractAnimation *>> m_animations;
+    QList<QSvgAbstractAnimation *> combinedAnimationsForNode(const QSvgNode *node) const;
+
+private:
+    QHash<const QSvgNode *, QList<QSvgAbstractAnimation *>> m_animationsSMIL;
+    QHash<const QSvgNode *, QList<QSvgAbstractAnimation *>> m_animationsCSS;
     qint64 m_time;
     qint64 m_animationDuration;
 };

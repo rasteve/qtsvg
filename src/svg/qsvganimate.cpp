@@ -13,6 +13,11 @@ QSvgAnimateNode::QSvgAnimateNode(QSvgNode *parent)
 {
 }
 
+QSvgAnimateNode::~QSvgAnimateNode()
+{
+
+}
+
 QSvgAbstractAnimation::AnimationType QSvgAnimateNode::animationType() const
 {
     return AnimationType::SMIL;

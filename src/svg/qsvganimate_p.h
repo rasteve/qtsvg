@@ -36,6 +36,7 @@ public:
 
 public:
     QSvgAnimateNode(QSvgNode *parent = nullptr);
+    virtual ~QSvgAnimateNode();
 
     virtual AnimationType animationType() const override;
     void setRunningTime(int startMs, int durMs, int endMs, int by);

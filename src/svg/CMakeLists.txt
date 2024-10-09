@@ -32,6 +32,7 @@ qt_internal_add_module(Svg
         animation/qsvganimator.cpp animation/qsvganimator_p.h
         animation/qsvgabstractanimation.cpp animation/qsvgabstractanimation_p.h
         animation/qsvganimatedproperty.cpp animation/qsvganimatedproperty_p.h
+        animation/qsvgcssanimation.cpp animation/qsvgcssanimation_p.h
     DEFINES
         QT_NO_CONTEXTLESS_CONNECT
         QT_NO_USING_NAMESPACE
