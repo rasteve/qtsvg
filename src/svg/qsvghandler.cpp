@@ -2594,6 +2594,10 @@ static bool parseBaseAnimate(QSvgNode *parent,
     QString repeatStr  = attributes.value(QLatin1String("repeatCount")).toString();
     QString fillStr    = attributes.value(QLatin1String("fill")).toString();
     QString addtv      = attributes.value(QLatin1String("additive")).toString();
+    QString linkId = attributes.value(QLatin1String("xlink:href")).toString().remove(0, 1);
+
+    if (linkId.isEmpty())
+        linkId = attributes.value(QLatin1String("href")).toString().remove(0, 1);
 
     bool ok = true;
     int begin = parseClockValue(beginStr, &ok);
@@ -2618,6 +2622,7 @@ static bool parseBaseAnimate(QSvgNode *parent,
     anim->setRepeatCount(repeatCount);
     anim->setFill(fill);
     anim->setAdditiveType(additive);
+    anim->setLinkId(linkId);
 
     parent->document()->setAnimated(true);
 
@@ -5047,7 +5052,12 @@ bool QSvgHandler::startElement(const QString &localName,
         node = method(m_nodes.top(), attributes, this);
         if (node) {
             QSvgAnimateNode *anim = static_cast<QSvgAnimateNode *>(node);
-            m_doc->animator()->appendAnimation(m_nodes.top(), anim);
+            if (anim->linkId().isEmpty())
+                m_doc->animator()->appendAnimation(m_nodes.top(), anim);
+            else if (m_doc->namedNode(anim->linkId()))
+                m_doc->animator()->appendAnimation(m_doc->namedNode(anim->linkId()), anim);
+            else
+                m_toBeResolved.append(anim);
         }
     } else if (ParseMethod method = findUtilFactory(localName, options())) {
         Q_ASSERT(!m_nodes.isEmpty());
@@ -5186,6 +5196,11 @@ void QSvgHandler::resolveNodes()
                     break;
                 }
             }
+        } else if (node->type() == QSvgNode::AnimateTransform || node->type() == QSvgNode::AnimateColor) {
+            QSvgAnimateNode *anim = static_cast<QSvgAnimateNode *>(node);
+            QSvgNode *targetNode = m_doc->namedNode(anim->linkId());
+            if (targetNode)
+                m_doc->animator()->appendAnimation(targetNode, anim);
         }
     }
     m_toBeResolved.clear();

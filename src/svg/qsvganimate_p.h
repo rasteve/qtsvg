@@ -38,6 +38,9 @@ public:
     QSvgAnimateNode(QSvgNode *parent = nullptr);
     virtual ~QSvgAnimateNode();
 
+    void setLinkId(QString link);
+    QString linkId() const;
+
     virtual AnimationType animationType() const override;
     void setRunningTime(int startMs, int durMs, int endMs, int by);
     void setRepeatCount(qreal repeatCount);
@@ -55,6 +58,7 @@ protected:
     qreal m_end;
     Fill m_fill;
     Additive m_additive;
+    QString m_linkId;
 };
 
 class Q_SVG_EXPORT QSvgAnimateColor : public QSvgAnimateNode

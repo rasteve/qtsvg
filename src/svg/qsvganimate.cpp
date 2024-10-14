@@ -18,6 +18,16 @@ QSvgAnimateNode::~QSvgAnimateNode()
 
 }
 
+void QSvgAnimateNode::setLinkId(QString link)
+{
+    m_linkId = link;
+}
+
+QString QSvgAnimateNode::linkId() const
+{
+    return m_linkId;
+}
+
 QSvgAbstractAnimation::AnimationType QSvgAnimateNode::animationType() const
 {
     return AnimationType::SMIL;
