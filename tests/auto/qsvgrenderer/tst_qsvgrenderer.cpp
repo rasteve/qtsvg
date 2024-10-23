@@ -1733,6 +1733,8 @@ void tst_QSvgRenderer::ossFuzzRender_data()
 
     // oss-fuzz's findings can be looked up by their respective id:
     // https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=xxxxx
+    // or, respectively:
+    // https://issues.oss-fuzz.com/issues/xxxxxxxx
     // when configured with "-sanitize undefined", this resulted in:
     // "runtime error: -nan is outside the range of representable values of type 'int'"
     // runtime error: signed integer overflow: -2147483648 + -2147483648 cannot be represented in type 'int'
@@ -1754,6 +1756,8 @@ void tst_QSvgRenderer::ossFuzzLoad_data()
     QTest::addColumn<QByteArray>("svg");
     // oss-fuzz's findings can be looked up by their respective id:
     // https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=xxxxx
+    // or, respectively:
+    // https://issues.oss-fuzz.com/issues/xxxxxxxx
     // when configured with "-sanitize undefined", these resulted in:
     // "runtime error: division by zero"
     QTest::newRow("missing-arc-data") // id=23731
