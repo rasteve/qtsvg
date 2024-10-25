@@ -19,6 +19,8 @@
 #include <QtCore/qlist.h>
 #include <QtCore/qvariant.h>
 #include <QtCore/qstring.h>
+#include <QtCore/qpoint.h>
+#include <QtGui/qcolor.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -54,7 +56,7 @@ private:
     Type m_type;
 };
 
-class QSvgAnimatedPropertyColor : public QSvgAbstractAnimatedProperty
+class Q_SVG_EXPORT QSvgAnimatedPropertyColor : public QSvgAbstractAnimatedProperty
 {
 public:
     QSvgAnimatedPropertyColor(const QString &name);
@@ -68,7 +70,7 @@ private:
     QList<QColor> m_colors;
 };
 
-class QSvgAnimatedPropertyTransform : public QSvgAbstractAnimatedProperty
+class Q_SVG_EXPORT QSvgAnimatedPropertyTransform : public QSvgAbstractAnimatedProperty
 {
 public:
     QSvgAnimatedPropertyTransform(const QString &name);
