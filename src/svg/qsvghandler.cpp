@@ -2536,7 +2536,8 @@ static bool parseStyle(QSvgNode *node,
     parseRenderingHints(node, attributes, handler);
     parseOthers(node, attributes, handler);
     parseExtendedAttributes(node, attributes, handler);
-    parseCssAnimations(node, attributes, handler);
+    if (!handler->options().testFlag(QtSvg::DisableCSSAnimations))
+        parseCssAnimations(node, attributes, handler);
 
 #if 0
     value = attributes.value("audio-level");
@@ -4596,8 +4597,7 @@ typedef QSvgNode *(*AnimationMethod)(QSvgNode *, const QXmlStreamAttributes &, Q
 
 static AnimationMethod findAnimationFactory(const QString &name, QtSvg::Options options)
 {
-    Q_UNUSED(options);
-    if (name.isEmpty())
+    if (name.isEmpty() || options.testFlag(QtSvg::DisableSMILAnimations))
         return 0;
 
     QStringView ref = QStringView{name}.mid(1, name.size() - 1);

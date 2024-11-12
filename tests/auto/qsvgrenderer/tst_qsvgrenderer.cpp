@@ -87,6 +87,9 @@ private slots:
     void testFeGaussian();
     void testFeBlend();
 
+    void testOption_data();
+    void testOption();
+
 #ifndef QT_NO_COMPRESS
     void testGzLoading();
     void testGzHelper_data();
@@ -2298,6 +2301,26 @@ void tst_QSvgRenderer::testFeBlend()
     p.end();
 
     QCOMPARE(refImage, image);
+}
+
+void tst_QSvgRenderer::testOption_data()
+{
+    QTest::addColumn<QtSvg::Option>("option");
+
+    QTest::newRow("No Option") << QtSvg::Option::NoOption;
+    QTest::newRow("Tiny 1.2 Features") << QtSvg::Option::Tiny12FeaturesOnly;
+    QTest::newRow("Assume Trusted Source") << QtSvg::Option::AssumeTrustedSource;
+    QTest::newRow("Disable SMIL") << QtSvg::Option::DisableSMILAnimations;
+    QTest::newRow("Disable Animations") << QtSvg::Option::DisableAnimations;
+}
+
+void tst_QSvgRenderer::testOption()
+{
+    QFETCH(QtSvg::Option, option);
+
+    QSvgRenderer renderer;
+    renderer.setOptions(option);
+    QVERIFY(renderer.options().testFlag(option));
 }
 
 QTEST_MAIN(tst_QSvgRenderer)
