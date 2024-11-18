@@ -92,6 +92,12 @@ public:
 
     void interpolate(uint index, qreal t) override;
 
+    qreal interpolatedRotation(uint index, qreal t) const;
+    QPointF interpolatedCenterOfRotation(uint index, qreal t) const;
+    QPointF interpolatedScale(uint index, qreal t) const;
+    QPointF interpolatedTranslation(uint index, qreal t) const;
+    QPointF interpolatedSkew(uint index, qreal t) const;
+
 private:
     QList<QPointF> m_translations;
     QList<QPointF> m_scales;

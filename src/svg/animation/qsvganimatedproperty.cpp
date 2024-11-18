@@ -187,6 +187,42 @@ QList<QPointF> QSvgAnimatedPropertyTransform::skews() const
     return m_skews;
 }
 
+qreal QSvgAnimatedPropertyTransform::interpolatedRotation(uint index, qreal t) const
+{
+    qreal r1 = m_rotations.at(index - 1);
+    qreal r2 = m_rotations.at(index);
+    return lerp(r1, r2, t);
+}
+
+QPointF QSvgAnimatedPropertyTransform::interpolatedCenterOfRotation(uint index, qreal t) const
+{
+    QPointF cor1 = m_centersOfRotation.at(index - 1);
+    QPointF cor2 = m_centersOfRotation.at(index);
+    return pointInterpolator(cor1, cor2, t);
+}
+
+QPointF QSvgAnimatedPropertyTransform::interpolatedSkew(uint index, qreal t) const
+{
+    QPointF skew1 = m_skews.at(index - 1);
+    QPointF skew2 = m_skews.at(index);
+
+    return pointInterpolator(skew1, skew2, t);
+}
+
+QPointF QSvgAnimatedPropertyTransform::interpolatedTranslation(uint index, qreal t) const
+{
+    QPointF t1 = m_translations.at(index - 1);
+    QPointF t2 = m_translations.at(index);
+    return pointInterpolator(t1, t2, t);
+}
+
+QPointF QSvgAnimatedPropertyTransform::interpolatedScale(uint index, qreal t) const
+{
+    QPointF s1 = m_scales.at(index - 1);
+    QPointF s2 = m_scales.at(index);
+    return pointInterpolator(s1, s2, t);
+}
+
 void QSvgAnimatedPropertyTransform::interpolate(uint index, qreal t)
 {
     if (index >= (uint)m_keyFrames.size()) {
@@ -197,29 +233,19 @@ void QSvgAnimatedPropertyTransform::interpolate(uint index, qreal t)
     QTransform transform = QTransform();
 
     if (m_skews.size() == m_keyFrames.size()) {
-        QPointF skew1 = m_skews.at(index - 1);
-        QPointF skew2 = m_skews.at(index);
-
-        QPointF skew = pointInterpolator(skew1, skew2, t);
+        const QPointF skew = interpolatedSkew(index, t);
         transform.shear(qTan(qDegreesToRadians(skew.x())), qTan(qDegreesToRadians(skew.y())));
     }
 
     if (m_scales.size() == m_keyFrames.size()) {
-        QPointF s1 = m_scales.at(index - 1);
-        QPointF s2 = m_scales.at(index);
-        QPointF scale = pointInterpolator(s1, s2, t);
-
+        const QPointF scale = interpolatedScale(index, t);
         transform.scale(scale.x(), scale.y());
     }
 
     if (m_rotations.size() == m_keyFrames.size() &&
         m_centersOfRotation.size() == m_keyFrames.size()) {
-        qreal r1 = m_rotations.at(index - 1);
-        QPointF cor1 = m_centersOfRotation.at(index - 1);
-        qreal r2 = m_rotations.at(index);
-        QPointF cor2 = m_centersOfRotation.at(index);
-        qreal rotation  = lerp(r1, r2, t);
-        QPointF cor = pointInterpolator(cor1, cor2, t);
+        const qreal rotation = interpolatedRotation(index, t);
+        const QPointF cor = interpolatedCenterOfRotation(index, t);
 
         transform.translate(cor.x(), cor.y());
         transform.rotate(rotation);
@@ -227,10 +253,7 @@ void QSvgAnimatedPropertyTransform::interpolate(uint index, qreal t)
     }
 
     if (m_translations.size() == m_keyFrames.size()) {
-        QPointF t1 = m_translations.at(index - 1);
-        QPointF t2 = m_translations.at(index);
-        QPointF translation  = pointInterpolator(t1, t2, t);
-
+        const QPointF translation = interpolatedTranslation(index, t);
         transform.translate(translation.x(), translation.y());
     }
 
