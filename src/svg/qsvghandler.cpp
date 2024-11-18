@@ -2007,6 +2007,27 @@ static bool parseStyle(QSvgNode *node,
                        const QSvgAttributes &attributes,
                        QSvgHandler *);
 
+static int parseClockValue(QStringView str, bool *ok)
+{
+    int res = 0;
+    int ms = 1000;
+    str = str.trimmed();
+    if (str.endsWith(QLatin1String("ms"))) {
+        str.chop(2);
+        ms = 1;
+    } else if (str.endsWith(QLatin1String("s"))) {
+        str.chop(1);
+    }
+    double val = ms * toDouble(str, ok);
+    if (ok) {
+        if (val > std::numeric_limits<int>::min() && val < std::numeric_limits<int>::max())
+            res = static_cast<int>(val);
+        else
+            *ok = false;
+    }
+    return res;
+}
+
 #ifndef QT_NO_CSSPARSER
 
 static void parseCSStoXMLAttrs(const QList<QCss::Declaration> &declarations,
@@ -2146,6 +2167,63 @@ static void cssStyleLookup(QSvgNode *node,
 {
     QXmlStreamAttributes attributes;
     cssStyleLookup(node, handler, selector, attributes);
+}
+
+static void parseCssAnimations(QSvgNode *node,
+                               const QSvgAttributes &attributes,
+                               QSvgHandler *handler)
+{
+    if (attributes.animationName.isEmpty() || attributes.animationDuration.isEmpty())
+        return;
+
+    QCss::StyleSelector::NodePtr cssNode;
+    cssNode.ptr = node;
+    QCss::AnimationRule rule = handler->selector()->animationsForNode(cssNode);
+
+    struct PropertyData {
+        QList<qreal> keyFrames;
+        QList<QColor> values;
+    };
+
+
+    QHash<QString, PropertyData> propertyData;
+    for (QCss::AnimationRule::AnimationRuleSet ruleSet : rule.ruleSets) {
+        QList<QCss::Declaration> decls = ruleSet.declarations;
+        for (QCss::Declaration decl : decls) {
+            if (decl.d->property == QStringLiteral("fill") || decl.d->property == QStringLiteral("stroke")) {
+                QColor fillColor;
+                constructColor(decl.d->values.first().toString(), QStringLiteral("1"), fillColor, handler);
+                propertyData[decl.d->property].keyFrames.append(ruleSet.keyFrame);
+                propertyData[decl.d->property].values.append(fillColor);
+            }
+        }
+    }
+
+    bool ok;
+    int duration = parseClockValue(attributes.animationDuration, &ok);
+    int delay = parseClockValue(attributes.animationDelay, &ok);
+
+    qreal repeatCount = (attributes.animationIterationCount == QLatin1String("infinite")) ? -1 :
+                            qMax(1.0, toDouble(attributes.animationIterationCount));
+
+    QSvgCssAnimation *anim = new QSvgCssAnimation;
+
+    for (auto itr = propertyData.begin(); itr != propertyData.end(); itr++) {
+        QSvgAnimatedPropertyColor *prop = static_cast<QSvgAnimatedPropertyColor *>
+            (QSvgAbstractAnimatedProperty::createAnimatedProperty(itr.key()));
+        if (prop) {
+            prop->setKeyFrames(itr.value().keyFrames);
+            prop->setColors(itr.value().values);
+            anim->appendProperty(prop);
+        }
+    }
+
+    anim->setRunningTime(delay, duration);
+    anim->setIterationCount(repeatCount);
+
+    handler->document()->animator()->appendAnimation(node, anim);
+    handler->setAnimPeriod(delay, delay + duration);
+    handler->document()->setAnimated(true);
 }
 
 #endif // QT_NO_CSSPARSER
@@ -2443,84 +2521,6 @@ static void parseRenderingHints(QSvgNode *node,
     node->appendStyleProperty(p, attributes.id);
 }
 
-static int parseClockValue(QStringView str, bool *ok)
-{
-    int res = 0;
-    int ms = 1000;
-    str = str.trimmed();
-    if (str.endsWith(QLatin1String("ms"))) {
-        str.chop(2);
-        ms = 1;
-    } else if (str.endsWith(QLatin1String("s"))) {
-        str.chop(1);
-    }
-    double val = ms * toDouble(str, ok);
-    if (ok) {
-        if (val > std::numeric_limits<int>::min() && val < std::numeric_limits<int>::max())
-            res = static_cast<int>(val);
-        else
-            *ok = false;
-    }
-    return res;
-}
-
-static void parseCssAnimations(QSvgNode *node,
-                        const QSvgAttributes &attributes,
-                        QSvgHandler *handler)
-{
-    if (attributes.animationName.isEmpty() || attributes.animationDuration.isEmpty())
-        return;
-
-    QCss::StyleSelector::NodePtr cssNode;
-    cssNode.ptr = node;
-    QCss::AnimationRule rule = handler->selector()->animationsForNode(cssNode);
-
-    struct PropertyData {
-        QList<qreal> keyFrames;
-        QList<QColor> values;
-    };
-
-
-    QHash<QString, PropertyData> propertyData;
-    for (QCss::AnimationRule::AnimationRuleSet ruleSet : rule.ruleSets) {
-        QList<QCss::Declaration> decls = ruleSet.declarations;
-        for (QCss::Declaration decl : decls) {
-            if (decl.d->property == QStringLiteral("fill") || decl.d->property == QStringLiteral("stroke")) {
-                QColor fillColor;
-                constructColor(decl.d->values.first().toString(), QStringLiteral("1"), fillColor, handler);
-                propertyData[decl.d->property].keyFrames.append(ruleSet.keyFrame);
-                propertyData[decl.d->property].values.append(fillColor);
-            }
-        }
-    }
-
-    bool ok;
-    int duration = parseClockValue(attributes.animationDuration, &ok);
-    int delay = parseClockValue(attributes.animationDelay, &ok);
-
-    qreal repeatCount = (attributes.animationIterationCount == QLatin1String("infinite")) ? -1 :
-                            qMax(1.0, toDouble(attributes.animationIterationCount));
-
-    QSvgCssAnimation *anim = new QSvgCssAnimation;
-
-    for (auto itr = propertyData.begin(); itr != propertyData.end(); itr++) {
-        QSvgAnimatedPropertyColor *prop = static_cast<QSvgAnimatedPropertyColor *>
-                                        (QSvgAbstractAnimatedProperty::createAnimatedProperty(itr.key()));
-        if (prop) {
-            prop->setKeyFrames(itr.value().keyFrames);
-            prop->setColors(itr.value().values);
-            anim->appendProperty(prop);
-        }
-    }
-
-    anim->setRunningTime(delay, duration);
-    anim->setIterationCount(repeatCount);
-
-    handler->document()->animator()->appendAnimation(node, anim);
-    handler->setAnimPeriod(delay, delay + duration);
-    handler->document()->setAnimated(true);
-}
-
 static bool parseStyle(QSvgNode *node,
                        const QSvgAttributes &attributes,
                        QSvgHandler *handler)
@@ -2536,8 +2536,10 @@ static bool parseStyle(QSvgNode *node,
     parseRenderingHints(node, attributes, handler);
     parseOthers(node, attributes, handler);
     parseExtendedAttributes(node, attributes, handler);
+#ifndef QT_NO_CSSPARSER
     if (!handler->options().testFlag(QtSvg::DisableCSSAnimations))
         parseCssAnimations(node, attributes, handler);
+#endif
 
 #if 0
     value = attributes.value("audio-level");
