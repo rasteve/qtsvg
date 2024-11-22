@@ -33,6 +33,11 @@ QSvgAbstractAnimation::AnimationType QSvgAnimateNode::animationType() const
     return AnimationType::SMIL;
 }
 
+bool QSvgAnimateNode::isActive() const
+{
+    return !finished() || m_fill == Fill::Freeze;
+}
+
 void QSvgAnimateNode::setRunningTime(int startMs, int durMs, int endMs, int by)
 {
     Q_UNUSED(by)

@@ -47,6 +47,7 @@ public:
     QList<QSvgAbstractAnimatedProperty *> properties() const;
 
     bool finished() const;
+    virtual bool isActive() const;
 
 protected:
     int m_start;

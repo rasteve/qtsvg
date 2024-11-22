@@ -42,6 +42,8 @@ public:
     QString linkId() const;
 
     virtual AnimationType animationType() const override;
+    virtual bool isActive() const override;
+
     void setRunningTime(int startMs, int durMs, int endMs, int by);
     void setRepeatCount(qreal repeatCount);
 

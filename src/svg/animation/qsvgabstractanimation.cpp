@@ -35,6 +35,11 @@ bool QSvgAbstractAnimation::finished() const
     return m_finished;
 }
 
+bool QSvgAbstractAnimation::isActive() const
+{
+    return !finished();
+}
+
 void QSvgAbstractAnimation::evaluateAnimation(qreal elapsedTime)
 {
     qreal fractionOfTotalTime = 0;
@@ -42,7 +47,7 @@ void QSvgAbstractAnimation::evaluateAnimation(qreal elapsedTime)
         fractionOfTotalTime = (elapsedTime - m_start) / m_duration;
         if (m_iterationCount >= 0 && m_iterationCount < fractionOfTotalTime) {
             m_finished = true;
-            fractionOfTotalTime = m_iterationCount;
+            return;
         }
     }
 

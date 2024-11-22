@@ -27,7 +27,6 @@ public:
     virtual AnimationType animationType() const override;
 };
 
-
 QT_END_NAMESPACE
 
 #endif // QSVGCSSANIMATION_P_H
