@@ -24,7 +24,7 @@ qt_internal_add_test(tst_baseline_qsvgrenderer
     INCLUDE_DIRECTORIES
         ${BASELINE_DIR}
     LIBRARIES
-        Qt::Svg
+        Qt::SvgPrivate
         Qt::Network
     TESTDATA ${test_data}
 )
