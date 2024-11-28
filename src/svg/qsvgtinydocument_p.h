@@ -38,12 +38,15 @@ class QTransform;
 class Q_SVG_EXPORT QSvgTinyDocument : public QSvgStructureNode
 {
 public:
-    static QSvgTinyDocument *load(const QString &file, QtSvg::Options options = {});
-    static QSvgTinyDocument *load(const QByteArray &contents, QtSvg::Options options = {});
-    static QSvgTinyDocument *load(QXmlStreamReader *contents, QtSvg::Options options = {});
+    static QSvgTinyDocument *load(const QString &file, QtSvg::Options options = {},
+                                  QtSvg::AnimatorType type = QtSvg::AnimatorType::Automatic);
+    static QSvgTinyDocument *load(const QByteArray &contents, QtSvg::Options options = {},
+                                  QtSvg::AnimatorType type = QtSvg::AnimatorType::Automatic);
+    static QSvgTinyDocument *load(QXmlStreamReader *contents, QtSvg::Options options = {},
+                                  QtSvg::AnimatorType type = QtSvg::AnimatorType::Automatic);
     static bool isLikelySvg(QIODevice *device, bool *isCompressed = nullptr);
 public:
-    QSvgTinyDocument(QtSvg::Options options);
+    QSvgTinyDocument(QtSvg::Options options, QtSvg::AnimatorType type);
     ~QSvgTinyDocument();
     Type type() const override;
 
@@ -90,7 +93,7 @@ public:
     void setCurrentFrame(int);
     void setFramesPerSecond(int num);
 
-    QSharedPointer<QSvgAnimator> animator() const;
+    QSharedPointer<QSvgAbstractAnimator> animator() const;
 
 private:
     void mapSourceToTarget(QPainter *p, const QRectF &targetRect, const QRectF &sourceRect = QRectF());
@@ -113,7 +116,7 @@ private:
     QSvgExtraStates m_states;
 
     const QtSvg::Options m_options;
-    QSharedPointer<QSvgAnimator> m_animator;
+    QSharedPointer<QSvgAbstractAnimator> m_animator;
 };
 
 Q_SVG_EXPORT QDebug operator<<(QDebug debug, const QSvgTinyDocument &doc);

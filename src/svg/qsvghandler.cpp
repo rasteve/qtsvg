@@ -2233,6 +2233,11 @@ QtSvg::Options QSvgHandler::options() const
     return m_options;
 }
 
+QtSvg::AnimatorType QSvgHandler::animatorType() const
+{
+    return m_animatorType;
+}
+
 bool QSvgHandler::trustedSourceMode() const
 {
     return m_options.testFlag(QtSvg::AssumeTrustedSource);
@@ -2629,7 +2634,7 @@ static bool parseBaseAnimate(QSvgNode *parent,
 
     parent->document()->setAnimated(true);
 
-    handler->setAnimPeriod(begin, end);
+    handler->setAnimPeriod(begin, begin + dur);
     return true;
 }
 
@@ -4198,7 +4203,7 @@ static QSvgNode *createSvgNode(QSvgNode *parent,
 {
     Q_UNUSED(parent); Q_UNUSED(attributes);
 
-    QSvgTinyDocument *node = new QSvgTinyDocument(handler->options());
+    QSvgTinyDocument *node = new QSvgTinyDocument(handler->options(), handler->animatorType());
     const QStringView widthStr  = attributes.value(QLatin1String("width"));
     const QStringView heightStr = attributes.value(QLatin1String("height"));
     QString viewBoxStr = attributes.value(QLatin1String("viewBox")).toString();
@@ -4725,26 +4730,32 @@ static StyleParseMethod findStyleUtilFactoryMethod(const QString &name)
     return 0;
 }
 
-QSvgHandler::QSvgHandler(QIODevice *device, QtSvg::Options options)
+QSvgHandler::QSvgHandler(QIODevice *device, QtSvg::Options options,
+                         QtSvg::AnimatorType type)
     : xml(new QXmlStreamReader(device))
     , m_ownsReader(true)
     , m_options(options)
+    , m_animatorType(type)
 {
     init();
 }
 
-QSvgHandler::QSvgHandler(const QByteArray &data, QtSvg::Options options)
+QSvgHandler::QSvgHandler(const QByteArray &data, QtSvg::Options options,
+                         QtSvg::AnimatorType type)
     : xml(new QXmlStreamReader(data))
     , m_ownsReader(true)
     , m_options(options)
+    , m_animatorType(type)
 {
     init();
 }
 
-QSvgHandler::QSvgHandler(QXmlStreamReader *const reader, QtSvg::Options options)
+QSvgHandler::QSvgHandler(QXmlStreamReader *const reader, QtSvg::Options options,
+                         QtSvg::AnimatorType type)
     : xml(reader)
     , m_ownsReader(false)
     , m_options(options)
+    , m_animatorType(type)
 {
     init();
 }

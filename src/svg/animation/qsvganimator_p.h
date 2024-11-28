@@ -21,23 +21,28 @@
 
 QT_BEGIN_NAMESPACE
 
-class Q_SVG_EXPORT QSvgAnimator
+class Q_SVG_EXPORT QSvgAbstractAnimator
 {
 public:
-    QSvgAnimator();
-    ~QSvgAnimator();
+    QSvgAbstractAnimator();
+    virtual ~QSvgAbstractAnimator();
 
     void appendAnimation(const QSvgNode *node, QSvgAbstractAnimation *anim);
     QList<QSvgAbstractAnimation *> animationsForNode(const QSvgNode *node) const;
 
     void advanceAnimations();
-    void restartAnimation();
-    qint64 currentElapsed();
+    virtual void restartAnimation() = 0;
+    virtual qint64 currentElapsed() = 0;
+    virtual void setAnimatorTime(qint64 time) = 0;
+
     void setAnimationDuration(qint64 dur);
     qint64 animationDuration() const;
-    void fastForwardAnimation(qint64 time);
 
     void applyAnimationsOnNode(const QSvgNode *node, QPainter *p);
+
+protected:
+    qint64 m_time;
+    qint64 m_animationDuration;
 
 private:
     QList<QSvgAbstractAnimation *> combinedAnimationsForNode(const QSvgNode *node) const;
@@ -45,9 +50,30 @@ private:
 private:
     QHash<const QSvgNode *, QList<QSvgAbstractAnimation *>> m_animationsSMIL;
     QHash<const QSvgNode *, QList<QSvgAbstractAnimation *>> m_animationsCSS;
-    qint64 m_time;
-    qint64 m_animationDuration;
 };
+
+class Q_SVG_EXPORT QSvgAnimator : public QSvgAbstractAnimator
+{
+public:
+    QSvgAnimator();
+    ~QSvgAnimator();
+
+    virtual void restartAnimation() override;
+    virtual qint64 currentElapsed() override;
+    virtual void setAnimatorTime(qint64 time) override;
+};
+
+class Q_SVG_EXPORT QSvgAnimationController : public QSvgAbstractAnimator
+{
+public:
+    QSvgAnimationController();
+    ~QSvgAnimationController();
+
+    virtual void restartAnimation() override;
+    virtual qint64 currentElapsed() override;
+    virtual void setAnimatorTime(qint64 time) override;
+};
+
 
 QT_END_NAMESPACE
 

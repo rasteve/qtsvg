@@ -59,9 +59,12 @@ public:
     };
 
 public:
-    QSvgHandler(QIODevice *device, QtSvg::Options options = {});
-    QSvgHandler(const QByteArray &data, QtSvg::Options options = {});
-    QSvgHandler(QXmlStreamReader *const data, QtSvg::Options options = {});
+    QSvgHandler(QIODevice *device, QtSvg::Options options = {},
+                QtSvg::AnimatorType type = QtSvg::AnimatorType::Automatic);
+    QSvgHandler(const QByteArray &data, QtSvg::Options options = {},
+                QtSvg::AnimatorType type = QtSvg::AnimatorType::Automatic);
+    QSvgHandler(QXmlStreamReader *const data, QtSvg::Options options = {},
+                QtSvg::AnimatorType type = QtSvg::AnimatorType::Automatic);
     ~QSvgHandler();
 
     QIODevice *device() const;
@@ -100,6 +103,7 @@ public:
     { return m_defaultPen; }
 
     QtSvg::Options options() const;
+    QtSvg::AnimatorType animatorType() const;
     bool trustedSourceMode() const;
 
 public:
@@ -161,6 +165,7 @@ private:
     const bool m_ownsReader;
 
     const QtSvg::Options m_options;
+    const QtSvg::AnimatorType m_animatorType;
 };
 
 Q_DECLARE_LOGGING_CATEGORY(lcSvgHandler)

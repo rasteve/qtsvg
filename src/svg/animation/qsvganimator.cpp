@@ -23,13 +23,13 @@ static QColor sumColor(const QColor &c1, const QColor &c2)
     return QColor(sumRgb);
 }
 
-QSvgAnimator::QSvgAnimator()
+QSvgAbstractAnimator::QSvgAbstractAnimator()
     : m_time(0)
     , m_animationDuration(0)
 {
 }
 
-QSvgAnimator::~QSvgAnimator()
+QSvgAbstractAnimator::~QSvgAbstractAnimator()
 {
     for (auto itr = m_animationsCSS.begin(); itr != m_animationsCSS.end(); itr++) {
         QList<QSvgAbstractAnimation *> &nodeAnimations = itr.value();
@@ -38,7 +38,8 @@ QSvgAnimator::~QSvgAnimator()
     }
 }
 
-void QSvgAnimator::appendAnimation(const QSvgNode *node, QSvgAbstractAnimation *anim)
+
+void QSvgAbstractAnimator::appendAnimation(const QSvgNode *node, QSvgAbstractAnimation *anim)
 {
     if (!node)
         return;
@@ -49,15 +50,14 @@ void QSvgAnimator::appendAnimation(const QSvgNode *node, QSvgAbstractAnimation *
         m_animationsCSS[node].append(anim);
 }
 
-QList<QSvgAbstractAnimation *> QSvgAnimator::animationsForNode(const QSvgNode *node) const
+QList<QSvgAbstractAnimation *> QSvgAbstractAnimator::animationsForNode(const QSvgNode *node) const
 {
     return combinedAnimationsForNode(node);
 }
 
-void QSvgAnimator::advanceAnimations()
+void QSvgAbstractAnimator::advanceAnimations()
 {
     qreal elapsedTime = currentElapsed();
-
     for (auto itr = m_animationsCSS.begin(); itr != m_animationsCSS.end(); itr++) {
         QList<QSvgAbstractAnimation *> &nodeAnimations = itr.value();
         for (QSvgAbstractAnimation *anim : nodeAnimations) {
@@ -75,32 +75,17 @@ void QSvgAnimator::advanceAnimations()
     }
 }
 
-void QSvgAnimator::restartAnimation()
-{
-    m_time = QDateTime::currentMSecsSinceEpoch();
-}
-
-qint64 QSvgAnimator::currentElapsed()
-{
-    return QDateTime::currentMSecsSinceEpoch() - m_time;
-}
-
-void QSvgAnimator::setAnimationDuration(qint64 dur)
+void QSvgAbstractAnimator::setAnimationDuration(qint64 dur)
 {
     m_animationDuration = dur;
 }
 
-qint64 QSvgAnimator::animationDuration() const
+qint64 QSvgAbstractAnimator::animationDuration() const
 {
     return m_animationDuration;
 }
 
-void QSvgAnimator::fastForwardAnimation(qint64 time)
-{
-    m_time += time;
-}
-
-void QSvgAnimator::applyAnimationsOnNode(const QSvgNode *node, QPainter *p)
+void QSvgAbstractAnimator::applyAnimationsOnNode(const QSvgNode *node, QPainter *p)
 {
     QList<QSvgAbstractAnimation *> nodeAnims = combinedAnimationsForNode(node);
 
@@ -150,12 +135,58 @@ void QSvgAnimator::applyAnimationsOnNode(const QSvgNode *node, QPainter *p)
     }
 }
 
-QList<QSvgAbstractAnimation *> QSvgAnimator::combinedAnimationsForNode(const QSvgNode *node) const
+QList<QSvgAbstractAnimation *> QSvgAbstractAnimator::combinedAnimationsForNode(const QSvgNode *node) const
 {
     if (!node)
         return QList<QSvgAbstractAnimation *>();
 
     return m_animationsSMIL.value(node) + m_animationsCSS.value(node);
+}
+
+QSvgAnimator::QSvgAnimator()
+{
+}
+
+QSvgAnimator::~QSvgAnimator()
+{
+}
+
+void QSvgAnimator::restartAnimation()
+{
+    m_time = QDateTime::currentMSecsSinceEpoch();
+}
+
+qint64 QSvgAnimator::currentElapsed()
+{
+    return QDateTime::currentMSecsSinceEpoch() - m_time;
+}
+
+void QSvgAnimator::setAnimatorTime(qint64 time)
+{
+    m_time += time;
+}
+
+QSvgAnimationController::QSvgAnimationController()
+{
+}
+
+QSvgAnimationController::~QSvgAnimationController()
+{
+}
+
+void QSvgAnimationController::restartAnimation()
+{
+    m_time = 0;
+}
+
+qint64 QSvgAnimationController::currentElapsed()
+{
+    return m_time;
+}
+
+void QSvgAnimationController::setAnimatorTime(qint64 time)
+{
+    m_time = qMax(0, time);
 }
 
 QT_END_NAMESPACE
