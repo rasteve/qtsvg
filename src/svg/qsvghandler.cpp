@@ -2769,7 +2769,7 @@ static QSvgNode *createAnimateTransformNode(QSvgNode *parent,
         } else if (typeStr == QLatin1String("skewX")) {
             skews.append(QPointF(vals.at(i), 0));
         } else if (typeStr == QLatin1String("skewY")) {
-            skews.append(QPointF(i, vals.at(0)));
+            skews.append(QPointF(0, vals.at(i)));
         } else {
             return nullptr;
         }
