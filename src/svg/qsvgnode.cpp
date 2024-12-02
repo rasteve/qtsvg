@@ -44,8 +44,7 @@ void QSvgNode::draw(QPainter *p, QSvgExtraStates &states)
 
     if (shouldDrawNode(p, states)) {
         applyStyle(p, states);
-        if (document()->animated())
-            document()->animator()->applyAnimationsOnNode(this, p);
+        applyAnimatedStyle(p, states);
         QSvgNode *maskNode = this->hasMask() ? document()->namedNode(this->maskId()) : nullptr;
         QSvgFilterContainer *filterNode = this->hasFilter() ? static_cast<QSvgFilterContainer*>(document()->namedNode(this->filterId()))
                                                             : nullptr;
@@ -91,6 +90,7 @@ void QSvgNode::draw(QPainter *p, QSvgExtraStates &states)
                 drawCommand(p, states);
 
         }
+        revertAnimatedStyle(p ,states);
         revertStyle(p, states);
     }
 
@@ -271,6 +271,18 @@ void QSvgNode::revertStyleRecursive(QPainter *p, QSvgExtraStates &states) const
     revertStyle(p, states);
     if (parent())
         parent()->revertStyleRecursive(p, states);
+}
+
+void QSvgNode::applyAnimatedStyle(QPainter *p, QSvgExtraStates &states) const
+{
+    if (document()->animated())
+        m_animatedStyle.apply(p, this, states);
+}
+
+void QSvgNode::revertAnimatedStyle(QPainter *p, QSvgExtraStates &states) const
+{
+    if (document()->animated())
+        m_animatedStyle.revert(p, states);
 }
 
 QSvgStyleProperty * QSvgNode::styleProperty(QSvgStyleProperty::Type type) const

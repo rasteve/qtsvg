@@ -649,24 +649,11 @@ private:
     QPainter::CompositionMode m_oldMode;
 };
 
-
-class Q_SVG_EXPORT QSvgStyle
+class Q_SVG_EXPORT QSvgStaticStyle
 {
 public:
-    QSvgStyle()
-        : quality(0),
-          fill(0),
-          viewportFill(0),
-          font(0),
-          stroke(0),
-          solidColor(0),
-          gradient(0),
-          pattern(0),
-          transform(0),
-          opacity(0),
-          compop(0)
-    {}
-    ~QSvgStyle();
+    QSvgStaticStyle();
+    ~QSvgStaticStyle();
 
     void apply(QPainter *p, const QSvgNode *node, QSvgExtraStates &states);
     void revert(QPainter *p, QSvgExtraStates &states);
@@ -681,6 +668,27 @@ public:
     QSvgRefCounter<QSvgTransformStyle>    transform;
     QSvgRefCounter<QSvgOpacityStyle>      opacity;
     QSvgRefCounter<QSvgCompOpStyle>       compop;
+};
+
+class QSvgAbstractAnimatedProperty;
+class Q_SVG_EXPORT QSvgAnimatedStyle
+{
+public:
+    QSvgAnimatedStyle();
+    ~QSvgAnimatedStyle();
+
+    void apply(QPainter *p, const QSvgNode *node, QSvgExtraStates &states);
+    void revert(QPainter *p, QSvgExtraStates &states);
+
+private:
+    void savePaintingState(const QPainter *p, const QSvgNode *node, QSvgExtraStates &states);
+    void applyPropertyAnimation(QPainter *p, QSvgAbstractAnimatedProperty *property, bool replace);
+
+private:
+    QBrush m_brush;
+    QPen m_pen;
+    QTransform m_worldTransform;
+    QTransform m_transformToNode;
 };
 
 /********************************************************/

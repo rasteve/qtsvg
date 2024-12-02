@@ -38,8 +38,6 @@ public:
     void setAnimationDuration(qint64 dur);
     qint64 animationDuration() const;
 
-    void applyAnimationsOnNode(const QSvgNode *node, QPainter *p);
-
 protected:
     qint64 m_time;
     qint64 m_animationDuration;
